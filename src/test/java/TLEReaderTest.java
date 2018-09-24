@@ -34,9 +34,9 @@ public class TLEReaderTest {
         ClassLoader classLoader = getClass().getClassLoader();
         TLEReader fileReader = new TLEFileReader(new File(classLoader.getResource("some.tle").getFile()));
 
+        fileReader.init("2018-05-02", "2");
         List<TLE> tles = fileReader.readTLE();
 
-        fileReader.init(tles.get(0).getDate().toString().substring(0,10), "2");
         System.out.println(tles.get(0).getDate());
 
         CoordinateCalculator cc = new CoordinateCalculator();

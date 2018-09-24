@@ -2,6 +2,7 @@ package ru.spbstu.ioffe.satellite;
 
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.analytical.tle.TLE;
+import org.orekit.time.TimeScalesFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +41,17 @@ public class TLEFileReader implements TLEReader {
             tleList.add(tle);
         }
         tleList.forEach(System.out::println);
+        LocalDate lastTLEInFile = LocalDate.parse(tleList.get(tleList.size() - 1).getDate().toString(TimeScalesFactory.getUTC()).substring(0,10));
+
+        if (start.isAfter(lastTLEInFile)) {
+            System.out.println("We have no such date in TLE file, it will be set to the last in TLE: " + lastTLEInFile);
+            start = lastTLEInFile;
+        }
+        LocalDate firstTLEInFile = LocalDate.parse(tleList.get(0).getDate().toString(TimeScalesFactory.getUTC()).substring(0,10));
+        if (start.isBefore(firstTLEInFile)) {
+            System.out.println("We have no such date in TLE file, it will be set to the first in TLE: " + firstTLEInFile);
+            start = firstTLEInFile;
+        }
 
         return tleList;
     }

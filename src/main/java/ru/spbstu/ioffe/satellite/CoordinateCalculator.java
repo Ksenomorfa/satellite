@@ -6,6 +6,7 @@ import org.orekit.errors.OrekitException;
 import org.orekit.propagation.analytical.tle.TLE;
 import org.orekit.propagation.analytical.tle.TLEPropagator;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.PVCoordinates;
 
 import java.time.LocalDate;
@@ -20,15 +21,10 @@ public class CoordinateCalculator {
         long period = reader.getPeriod();
         TLE tle = tles.get(0);
 
-        AbsoluteDate dateStart = tle.getDate();
+        AbsoluteDate dateStart = new AbsoluteDate(dayStart.getYear(), Utils.toOrekitMonth(dayStart.getMonth()),
+                dayStart.getDayOfMonth(), TimeScalesFactory.getUTC());
         TLEPropagator sgp4 = TLEPropagator.selectExtrapolator(tle,
                 InertialProvider.EME2000_ALIGNED, Constants.satelliteMass);
-
-        if (dayStart.isAfter(LocalDate.parse(tle.getDate().toString().substring(0, 10)))) {
-            System.out.println("Something wrong. The needed date isn't presented in TLE. Date will be changed to the latest in TLE: "
-                    + tles.get(tles.size() - 1).getDate().toString().substring(0, 10));
-            dateStart = tles.get(tles.size() - 1).getDate();
-        }
 
         PVCoordinates pvCoordinates = sgp4.getPVCoordinates(dateStart);
         System.out.println(pvCoordinates);
