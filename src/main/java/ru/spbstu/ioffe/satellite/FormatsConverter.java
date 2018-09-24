@@ -3,7 +3,6 @@ package ru.spbstu.ioffe.satellite;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.errors.OrekitException;
 import org.orekit.time.AbsoluteDate;
-import org.orekit.time.TimeScalesFactory;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;

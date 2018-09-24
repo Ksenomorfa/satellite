@@ -6,10 +6,8 @@ import org.orekit.errors.OrekitException;
 import org.orekit.propagation.analytical.tle.TLE;
 import org.orekit.propagation.analytical.tle.TLEPropagator;
 import org.orekit.time.AbsoluteDate;
-import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.PVCoordinates;
 
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +29,6 @@ public class CoordinateCalculator {
                     + tles.get(tles.size() - 1).getDate().toString().substring(0, 10));
             dateStart = tles.get(tles.size() - 1).getDate();
         }
-
-//        AbsoluteDate dateStart = new AbsoluteDate(.getYear(),
-//                Utils.toOrekitMonth(dayStart.getMonth()),
-//                dayStart.getDayOfMonth(),
-//                TimeScalesFactory.getUTC());
 
         PVCoordinates pvCoordinates = sgp4.getPVCoordinates(dateStart);
         System.out.println(pvCoordinates);
