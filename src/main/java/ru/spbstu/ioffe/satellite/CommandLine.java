@@ -13,10 +13,13 @@ public class CommandLine {
     public void start() throws OrekitException {
         while(true) {
             List<TLE> tles = tleChoose();
-
-            tles.forEach(TLE::toString);
-            CoordinateCalculator coordinateCalculator = new CoordinateCalculator();
-            coordinateCalculator.calculateCoordinates(tles, reader);
+            if (!tles.isEmpty()) {
+                tles.forEach(TLE::toString);
+                CoordinateCalculator coordinateCalculator = new CoordinateCalculator();
+                coordinateCalculator.calculateCoordinates(tles, reader);
+            } else {
+                System.out.println("Sorry, tles for this satellite are absent.");
+            }
 
             System.out.println("Do you want to continue with next TLE (Y/N)?");
             Scanner sc = new Scanner(System.in);
@@ -48,6 +51,11 @@ public class CommandLine {
                 }
             } else if (choice.equals("2")) {
                 reader = new TLEURLReader();
+                System.out.println("Default satellite : " + Constants.satelliteId + ". Do you want to change it? (Y/N)");
+                if (sc.next().equalsIgnoreCase("Y")) {
+                    System.out.println("Enter NORAD satellite id: ");
+                    Constants.satelliteId = sc.next();
+                }
                 choiceIs = true;
             } else if (choice.equals("3")) {
                 System.out.println("Goodbye! ");

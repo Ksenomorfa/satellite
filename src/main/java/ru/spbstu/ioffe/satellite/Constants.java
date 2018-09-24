@@ -13,7 +13,7 @@ import java.util.Properties;
 public class Constants {
     // Mass in kg
     public static double satelliteMass;
-    public static double satelliteId;
+    public static String satelliteId;
 
     /**
      * Radius Earth [m]; WGS-84 (semi-major axis, a) (Equatorial Radius)
@@ -57,7 +57,7 @@ public class Constants {
         latitude = Double.parseDouble(prop.getProperty("observer.latitude"));
         longitude = Double.parseDouble(prop.getProperty("observer.longitude"));
         satelliteMass = Double.parseDouble(prop.getProperty("satellite.default.mass"));
-        satelliteId = Double.parseDouble(prop.getProperty("satellite.default.id"));
+        satelliteId = prop.getProperty("satellite.default.id");
 
         DataProvidersManager manager = DataProvidersManager.getInstance();
         manager.addProvider(new ZipJarCrawler(new File(orekitDataProp)));
