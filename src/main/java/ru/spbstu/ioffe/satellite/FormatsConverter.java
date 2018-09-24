@@ -17,10 +17,11 @@ public class FormatsConverter {
     private static final double asq = Math.pow(Constants.earthRadius, 2);
     private static final double esq = Math.pow(Constants.eccentricity, 2);
 
-      /**
+    /**
      * longitude in radians.
      * latitude in radians.
      * altitude in meters.
+     *
      * @param ecef
      */
     public static LLA ecef2lla(ECEF ecef) {
@@ -135,30 +136,14 @@ public class FormatsConverter {
     /**
      * Calculates the Greenwich mean sidereal time (GMST) on julDate (doesn't have to be 0h).
      * Used calculations from Meesus 2nd ed.
-     *
+     * https://stackoverflow.com/questions/32263754/modulus-in-pascal
      * @param jdut1 Julian Date
      * @return Greenwich mean sidereal time in degrees (0-360)
      */
     public static double greenwichMeanSidereal(double jdut1, AbsoluteDate date) throws OrekitException {
-        double Tu = (jdut1 - 2451545)/36525.0;
-        System.out.println("Tu: " + Tu);
-        double H0 = 24110.54481 + 8640184.812866*Tu + 0.093104* Tu*Tu -
-        6.2 * Tu * Tu* Tu * Math.pow(10, -6);
-//        double w = 1.00273790935 + 5.9 * Tu * Math.pow(10, -11);
-//        double t = date.toDate(TimeScalesFactory.getUTC()).getHours()*60*60 +
-//                date.toDate(TimeScalesFactory.getUTC()).getMinutes()*60 +
-//                date.toDate(TimeScalesFactory.getUTC()).getSeconds();
-
-//        double mjd = jdut1 - 2400000.5;
-//        double mjd2000 = 51544.5;
-//        double int_mjd = Math.floor(mjd);
-//        double frac_mjd = mjd - int_mjd;
-//        double Tu = (int_mjd - mjd2000) / 36525.0;
-//        double gmst = 24110.54841 + Tu * (8640184.812866 + Tu * (0.093104 - Tu * 6.2e-6));
-//        gmst = gmst + frac_mjd * 86400 * 1.00273790934 % 86400;
-//        gmst = gmst / 3600;
-        //double gmst = H0 + w * t;
-        System.out.println("gmst: " + H0);
-        return H0/3600;
+        double Tu = (jdut1 - 2451545.0);
+        double gmst = Tu * 24.06570982441908 + 18.697374558;
+        gmst = (gmst % 24) * Math.PI / 12;
+        return gmst;
     }
 }

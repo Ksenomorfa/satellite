@@ -10,6 +10,7 @@ import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.PVCoordinates;
 import ru.spbstu.ioffe.satellite.*;
 
+import javax.rmi.CORBA.Util;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,14 +33,15 @@ public class TLEReaderTest {
     public void testReadTleFile() throws OrekitException {
         ClassLoader classLoader = getClass().getClassLoader();
         TLEReader fileReader = new TLEFileReader(new File(classLoader.getResource("some.tle").getFile()));
+
         TLE tle = fileReader.readTLE().get(0);
         System.out.println(tle.getDate());
     }
 
     @Test
     public void testSPG4() throws OrekitException {
-        String dateStartString = "2018-09-23";
-        LocalDate dayToShow = LocalDate.parse(dateStartString, Utils.dateFormatter);
+        LocalDate dayToShow = LocalDate.now();
+        String dateStartString = dayToShow.format(Utils.dateFormatter);
 
         TLEReader urlReader = new TLEURLReader();
         urlReader.init(dateStartString, "2");
