@@ -14,6 +14,7 @@ import java.util.Scanner;
 public class TLEFileReader implements TLEReader {
     List<TLE> tleList = new ArrayList<>();
     private LocalDate start;
+    private LocalDate tleDateStart;
     private long period;
     File file;
 
@@ -23,6 +24,7 @@ public class TLEFileReader implements TLEReader {
 
     public void init(String start, String period) {
         this.start = LocalDate.parse(start, Utils.dateFormatter);
+        this.tleDateStart = this.start.minusDays(1);
         this.period = Long.parseLong(period);
     }
 
@@ -45,12 +47,14 @@ public class TLEFileReader implements TLEReader {
 
         if (start.isAfter(lastTLEInFile)) {
             System.out.println("We have no such date in TLE file, it will be set to the last in TLE: " + lastTLEInFile);
-            start = lastTLEInFile;
+            start = lastTLEInFile.plusDays(1);
+            tleDateStart = lastTLEInFile;
         }
         LocalDate firstTLEInFile = LocalDate.parse(tleList.get(0).getDate().toString(TimeScalesFactory.getUTC()).substring(0,10));
         if (start.isBefore(firstTLEInFile)) {
             System.out.println("We have no such date in TLE file, it will be set to the first in TLE: " + firstTLEInFile);
-            start = firstTLEInFile;
+            start = firstTLEInFile.plusDays(1);
+            tleDateStart = firstTLEInFile;
         }
 
         return tleList;
@@ -64,5 +68,12 @@ public class TLEFileReader implements TLEReader {
         return period;
     }
 
+    public LocalDate getTleDateStart() {
+        return tleDateStart;
+    }
+
+    public void setTleDateStart(LocalDate tleDateStart) {
+        this.tleDateStart = tleDateStart;
+    }
 }
 

@@ -24,6 +24,7 @@ public class TLEURLReader implements TLEReader {
     private HttpsURLConnection connection;
 
     private LocalDate start;
+    private LocalDate tleDateStart;
     private long period;
 
     public TLEURLReader() {
@@ -31,9 +32,9 @@ public class TLEURLReader implements TLEReader {
 
     public void init(String start, String period) {
         LocalDate startDate = LocalDate.parse(start, Utils.dateFormatter);
-        this.start = startDate;
+        this.start = startDate.minusDays(1);
         this.period = Long.parseLong(period);
-
+        this.tleDateStart = startDate;
         String end = startDate.plus(Long.parseLong(period), ChronoUnit.DAYS).format(Utils.dateFormatter);
         if (startDate.isAfter(LocalDate.now().minus(2, ChronoUnit.DAYS))) {
             System.out.println("Date is more then today, we will use the latest TLE from server.");
@@ -107,5 +108,13 @@ public class TLEURLReader implements TLEReader {
         return period;
     }
 
+    @Override
+    public LocalDate getTleDateStart() {
+        return tleDateStart;
+    }
+
+    public void setTleDateStart(LocalDate tleDateStart) {
+        this.tleDateStart = tleDateStart;
+    }
 }
 

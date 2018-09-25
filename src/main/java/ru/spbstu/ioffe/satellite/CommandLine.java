@@ -16,7 +16,13 @@ public class CommandLine {
             if (!tles.isEmpty()) {
                 tles.forEach(TLE::toString);
                 CoordinateCalculator coordinateCalculator = new CoordinateCalculator();
-                coordinateCalculator.calculateCoordinates(tles, reader);
+                List<Periodis> periods = coordinateCalculator.calculateCoordinates(tles, reader);
+                System.out.println(periods);
+                System.out.println("Date From | Date To | Duration");
+                for (Periodis period : periods) {
+                    System.out.println(period.getFrom() + " | " + period.getTo()
+                            + " | " +  period.getTo().durationFrom(period.getFrom()));
+                }
             } else {
                 System.out.println("Sorry, tles for this satellite are absent.");
             }

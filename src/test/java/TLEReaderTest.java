@@ -34,10 +34,8 @@ public class TLEReaderTest {
         ClassLoader classLoader = getClass().getClassLoader();
         TLEReader fileReader = new TLEFileReader(new File(classLoader.getResource("some.tle").getFile()));
 
-        fileReader.init("2018-05-02", "2");
+        fileReader.init("2009-09-10", "12");
         List<TLE> tles = fileReader.readTLE();
-
-        System.out.println(tles.get(0).getDate());
 
         CoordinateCalculator cc = new CoordinateCalculator();
         cc.calculateCoordinates(tles, fileReader);
@@ -50,7 +48,6 @@ public class TLEReaderTest {
 
         TLEReader urlReader = new TLEURLReader();
         urlReader.init(dateStartString, "2");
-
         List<TLE> tles = urlReader.readTLE();
         CoordinateCalculator cc = new CoordinateCalculator();
         cc.calculateCoordinates(tles, urlReader);
