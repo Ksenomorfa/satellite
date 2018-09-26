@@ -4,6 +4,7 @@ import org.orekit.errors.OrekitException;
 import org.orekit.propagation.analytical.tle.TLE;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,14 +15,14 @@ public class CommandLine {
         while(true) {
             List<TLE> tles = tleChoose();
             if (!tles.isEmpty()) {
-                tles.forEach(TLE::toString);
+                tles.forEach(System.err::println);
                 CoordinateCalculator coordinateCalculator = new CoordinateCalculator();
                 List<Periodis> periods = coordinateCalculator.calculateCoordinates(tles, reader);
-                System.out.println(periods);
-                System.out.println("Date From | Date To | Duration");
+                System.out.println("| Date From, UTC          | Date To, UTC            | Duration, sec |");
+                System.out.println("| ----------------------- | ----------------------- | ------------- |");
                 for (Periodis period : periods) {
-                    System.out.println(period.getFrom() + " | " + period.getTo()
-                            + " | " +  period.getTo().durationFrom(period.getFrom()));
+                    System.out.println("| " + period.getFrom() + " | " + period.getTo()
+                            + " | " +  new DecimalFormat("0.00").format(period.getTo().durationFrom(period.getFrom())) + "        |");
                 }
             } else {
                 System.out.println("Sorry, tles for this satellite are absent.");
@@ -77,6 +78,7 @@ public class CommandLine {
 
         reader.init(dateFrom, period);
         System.out.println(reader.getPeriod());
+        System.out.println("TLE content:");
         return reader.readTLE();
     }
 }

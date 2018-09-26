@@ -25,10 +25,9 @@ public class Periodis {
 
     @Override
     public String toString() {
-        return "Periodis{" +
-                "from=" + from +
-                ", to=" + to + " duration: "
-                + to.durationFrom(from) +
-                '}';
+        return "Period UTC " +
+                "from = " + from +
+                ", to = " + to + " duration: "
+                + (int) to.durationFrom(from) + " seconds ";
     }
 }

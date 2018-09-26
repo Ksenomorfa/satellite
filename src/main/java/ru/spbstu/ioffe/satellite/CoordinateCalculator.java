@@ -19,67 +19,82 @@ public class CoordinateCalculator {
 
     public List<Periodis> calculateCoordinates(List<TLE> tles, TLEReader reader) throws OrekitException {
         List<Periodis> periods = new ArrayList<>();
+        TLE tleLoaded = null;
 
-        LocalDate dayStart = reader.getTleDateStart();
+        for(TLE tle: tles) {
+            String tleDate = tle.getDate().toString(TimeScalesFactory.getUTC()).substring(0, 10);
+            String readerDate = reader.getTleDateStart().format(Utils.dateFormatter).substring(0, 10);
+
+            if (tle.getDate().toString(TimeScalesFactory.getUTC()).substring(0, 10)
+                    .equals(reader.getTleDateStart().format(Utils.dateFormatter).substring(0, 10))) {
+                tleLoaded = tle;
+                break;
+            } else if (LocalDate.parse(tleDate).isAfter(LocalDate.parse(readerDate))) {
+                tleLoaded = tles.get(0);
+                break;
+            } else if (LocalDate.parse(tleDate).isBefore(LocalDate.parse(readerDate))) {
+                tleLoaded = tles.get(tles.size() - 1);
+                break;
+            }
+        }
+        LocalDate dayStart = reader.getStart();
         long period = reader.getPeriod();
-        TLE tle = tles.get(0);
 
-        AbsoluteDate dateStart = new AbsoluteDate(dayStart.getYear(), Utils.toOrekitMonth(dayStart.getMonth()),
-                dayStart.getDayOfMonth(), TimeScalesFactory.getUTC());
-        TLEPropagator sgp4 = TLEPropagator.selectExtrapolator(tle,
+        TLEPropagator sgp4 = TLEPropagator.selectExtrapolator(tleLoaded,
                 InertialProvider.EME2000_ALIGNED, Constants.satelliteMass);
 
-        PVCoordinates pvCoordinates = sgp4.getPVCoordinates(dateStart);
-        System.out.println(pvCoordinates);
+        AbsoluteDate dateStartToPropogate = new AbsoluteDate(dayStart.getYear(), Utils.toOrekitMonth(dayStart.getMonth()),
+                dayStart.getDayOfMonth(), TimeScalesFactory.getUTC());
+        System.out.println("TLE loaded from: " + tleLoaded.getDate() + ". Date start to propogate: " + dateStartToPropogate);
 
-        //2458373.329873
+        PVCoordinates pvCoordinates = sgp4.getPVCoordinates(dateStartToPropogate);
+        System.out.println("PV coordinates:" + pvCoordinates);
+
         boolean satelliteIn = false;
         boolean satelliteOut = false;
-        Periodis periodOfExistence = new Periodis();
+        Periodis periodOfPresence = new Periodis();
+        System.out.println("Calculating periods ...");
 
-        for (int i = 0; i < 3600 * 24 * period; i++) {
-            AbsoluteDate newDate = dateStart.shiftedBy(i);
+        for (double i = 0; i < 3600 * 24 * period; i=i+0.1) {
+            AbsoluteDate newDate = dateStartToPropogate.shiftedBy(i);
             pvCoordinates = sgp4.propagate(newDate).getPVCoordinates();
             Vector3D position = pvCoordinates.getPosition();
 
             double julianDate = Utils.julianDate(newDate.toString().substring(0, 10), newDate.toString().substring(11, 19));
-           // System.out.println("Julian date:" + julianDate);
 
             ECEF ecef = FormatsConverter.teme2ecef(position, julianDate, newDate);
             LLA lla = FormatsConverter.ecef2lla(ecef);
+
             double neededDistance = neededDistanceThroughHorizont(lla);
             //System.out.println("needed distance: " + neededDistance);
             double actualDistance = actualDistanceSatellitePlace(ecef);
+            //System.out.println("TIME UTC: " + newDate);
             //System.out.println("actual distance: " + actualDistance);
+
             if (actualDistance <= neededDistance && !satelliteIn) {
-                periodOfExistence.setFrom(newDate);
+                periodOfPresence.setFrom(newDate);
                 satelliteIn = true;
-                System.out.println("Satellite in: " + newDate);
+                //System.out.println("Satellite in: " + newDate);
             }
 
             if (actualDistance > neededDistance && !satelliteOut && satelliteIn) {
-                periodOfExistence.setTo(newDate);
-                System.out.println("Satellite out: " + newDate);
+                periodOfPresence.setTo(newDate);
                 satelliteOut = true;
-                System.out.println(periodOfExistence);
+                //System.out.println("Satellite out: " + newDate);
             }
 
-            if (periodOfExistence.getFrom() != null && periodOfExistence.getTo() != null) {
-                periods.add(periodOfExistence);
-                System.out.println("period old:" + periodOfExistence);
-                int idex = periods.indexOf(periodOfExistence);
-                periodOfExistence = new Periodis();
-                System.out.println(" period index: " + periods.get(idex));
+            if (periodOfPresence.getFrom() != null && periodOfPresence.getTo() != null) {
+                periods.add(periodOfPresence);
+                periodOfPresence = new Periodis();
                 satelliteIn = false;
                 satelliteOut = false;
             }
 
-            //System.out.println("TIME UTC: " + newDate);
-
             //System.out.println("  ECEF: x: " + ecef.getX() + " y: " + ecef.getY() + " z: " + ecef.getZ() + " r: " + r);
             //System.out.println("  LLA: l: " + Math.toDegrees(lla.getLatitude()) + " l: " + Math.toDegrees(lla.getLongitude())
-              //      + " a: " + lla.getAltitude());
+             //       + " a: " + lla.getAltitude());
         }
+        //System.out.println(periods);
         return periods;
     }
 
@@ -100,18 +115,18 @@ public class CoordinateCalculator {
 
         //System.out.println("PLACE: " + x2+ " " + y2 + " " + z2 + " r: " + r);
         double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
-       // System.out.println("distance: " + distance);
+        //System.out.println("actual distance: " + distance);
 
         return distance;
     }
 
     private double neededDistanceThroughHorizont(LLA lla) {
-        int delta = 15;
+        double delta = Constants.deltaAngle / 180 * Math.PI;
         double height = lla.getAltitude();
         double earthRadius = Constants.earthRadius;
-        double beta = Math.acos(cos(delta) / (1 + height / earthRadius)) - delta;
-        double x = (earthRadius + height)* Math.sin(beta) / Math.sin(delta + 90);
-        //System.out.println("beta angle: " + beta + " distance needed to satellite: " + x);
+        double x = Math.sqrt(Math.pow(earthRadius + height, 2) - Math.pow(earthRadius,2) * Math.pow(cos(delta),2))
+                - earthRadius * Math.sin(delta);
+        //System.out.println("distance needed to satellite: " + x);
 
         return x;
     }

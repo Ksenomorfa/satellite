@@ -42,18 +42,15 @@ public class TLEFileReader implements TLEReader {
             TLE tle = new TLE(resultList.get(i), resultList.get(i + 1));
             tleList.add(tle);
         }
-        tleList.forEach(System.out::println);
         LocalDate lastTLEInFile = LocalDate.parse(tleList.get(tleList.size() - 1).getDate().toString(TimeScalesFactory.getUTC()).substring(0,10));
 
         if (start.isAfter(lastTLEInFile)) {
             System.out.println("We have no such date in TLE file, it will be set to the last in TLE: " + lastTLEInFile);
-            start = lastTLEInFile.plusDays(1);
             tleDateStart = lastTLEInFile;
         }
         LocalDate firstTLEInFile = LocalDate.parse(tleList.get(0).getDate().toString(TimeScalesFactory.getUTC()).substring(0,10));
         if (start.isBefore(firstTLEInFile)) {
             System.out.println("We have no such date in TLE file, it will be set to the first in TLE: " + firstTLEInFile);
-            start = firstTLEInFile.plusDays(1);
             tleDateStart = firstTLEInFile;
         }
 

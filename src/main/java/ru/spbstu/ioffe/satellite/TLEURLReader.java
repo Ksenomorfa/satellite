@@ -32,18 +32,17 @@ public class TLEURLReader implements TLEReader {
 
     public void init(String start, String period) {
         LocalDate startDate = LocalDate.parse(start, Utils.dateFormatter);
-        this.start = startDate.minusDays(1);
+        this.start = startDate;
         this.period = Long.parseLong(period);
-        this.tleDateStart = startDate;
+        this.tleDateStart = startDate.minusDays(1);
         String end = startDate.plus(Long.parseLong(period), ChronoUnit.DAYS).format(Utils.dateFormatter);
         if (startDate.isAfter(LocalDate.now().minus(2, ChronoUnit.DAYS))) {
             System.out.println("Date is more then today, we will use the latest TLE from server.");
             query = "/basicspacedata/query/class/tle_latest/ORDINAL/1/NORAD_CAT_ID/" +
                     Constants.satelliteId + "/orderby/TLE_LINE1%20ASC/format/tle";
-
         } else {
-            System.out.println("Data will be loaded from: " + start + " to: " + end);
-            query = "/basicspacedata/query/class/tle/EPOCH/" + start + "--" + end + "/NORAD_CAT_ID/" +
+            System.out.println("Data will be loaded from: " + this.tleDateStart + " to: " + end);
+            query = "/basicspacedata/query/class/tle/EPOCH/" + this.tleDateStart.format(Utils.dateFormatter) + "--" + end + "/NORAD_CAT_ID/" +
                     Constants.satelliteId + "/orderby/TLE_LINE1%20ASC/format/tle";
         }
     }
@@ -88,7 +87,6 @@ public class TLEURLReader implements TLEReader {
             List<String> resultList = new ArrayList<>();
             String output;
             while ((output = br.readLine()) != null) {
-                System.out.println(output);
                 resultList.add(output);
             }
             for (int i = 0; i < resultList.size(); i = i + 2) {

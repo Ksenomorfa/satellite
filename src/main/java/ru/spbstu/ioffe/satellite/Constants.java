@@ -14,6 +14,7 @@ public class Constants {
     // Mass in kg
     public static double satelliteMass;
     public static String satelliteId;
+    public static double deltaAngle;
 
     /**
      * Radius Earth [m]; WGS-84 (semi-major axis, a) (Equatorial Radius)
@@ -58,6 +59,7 @@ public class Constants {
         longitude = Double.parseDouble(prop.getProperty("observer.longitude"));
         satelliteMass = Double.parseDouble(prop.getProperty("satellite.default.mass"));
         satelliteId = prop.getProperty("satellite.default.id");
+        deltaAngle = Double.parseDouble(prop.getProperty("observer.delta.angle"));
 
         DataProvidersManager manager = DataProvidersManager.getInstance();
         manager.addProvider(new ZipJarCrawler(new File(orekitDataProp)));

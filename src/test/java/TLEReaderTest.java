@@ -26,7 +26,8 @@ public class TLEReaderTest {
         // 33504 id - KORONAS_FOTON
         TLEReader urlReader = new TLEURLReader();
         urlReader.init("2009-09-10", "7");
-        TLE tle = urlReader.readTLE().get(0);
+        List<TLE> tles = urlReader.readTLE();
+        tles.forEach(System.out::println);
     }
 
     @Test
@@ -34,22 +35,28 @@ public class TLEReaderTest {
         ClassLoader classLoader = getClass().getClassLoader();
         TLEReader fileReader = new TLEFileReader(new File(classLoader.getResource("some.tle").getFile()));
 
-        fileReader.init("2009-09-10", "12");
+        fileReader.init("2009-09-30", "2");
         List<TLE> tles = fileReader.readTLE();
+        tles.forEach(System.out::println);
 
         CoordinateCalculator cc = new CoordinateCalculator();
-        cc.calculateCoordinates(tles, fileReader);
+        List<Periodis> periods = cc.calculateCoordinates(tles, fileReader);
+        periods.forEach(System.out::println);
     }
 
     @Test
-    public void testSPG4() throws OrekitException {
-        LocalDate dayToShow = LocalDate.now();
+    public void testSPG4URL() throws OrekitException {
+        //LocalDate dayToShow = LocalDate.now();
+        LocalDate dayToShow = LocalDate.parse("2018-09-26", Utils.dateFormatter);
         String dateStartString = dayToShow.format(Utils.dateFormatter);
 
         TLEReader urlReader = new TLEURLReader();
         urlReader.init(dateStartString, "2");
         List<TLE> tles = urlReader.readTLE();
+        tles.forEach(System.out::println);
+
         CoordinateCalculator cc = new CoordinateCalculator();
-        cc.calculateCoordinates(tles, urlReader);
+        List<Periodis> periods = cc.calculateCoordinates(tles, urlReader);
+        periods.forEach(System.out::println);
     }
 }
