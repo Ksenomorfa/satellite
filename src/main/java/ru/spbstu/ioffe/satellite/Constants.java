@@ -1,6 +1,5 @@
 package ru.spbstu.ioffe.satellite;
 
-
 import org.orekit.data.DataProvidersManager;
 import org.orekit.data.ZipJarCrawler;
 
@@ -11,36 +10,28 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Constants {
-    // Mass in kg
-    public static double satelliteMass;
-    public static String satelliteId;
-    public static double deltaAngle;
-
-    /**
-     * Radius Earth [m]; WGS-84 (semi-major axis, a) (Equatorial Radius)
-     */
+    //Radius Earth [m]; WGS-84 (semi-major axis, a) (Equatorial Radius)
     public static final double earthRadius = 6378135;
-
-    /**
-     * Earth Flattening; WGS-84
-     */
-    public static final double flatteningEarth = 1.0 / 298.257223563;
-
-    /**
-     * Ellipsoid constants: eccentricity; WGS84
-     */
+    //Ellipsoid constants: eccentricity; WGS84
     public static final double eccentricity = 8.1819190842622e-2;
 
-    /** Machine precision for doubles.
-     */
-    public final static double MACHEPS = 1.1102230246251565E-16;
-
-    // Setted in properties file
+    // Next constants are set in properties file
+    // latitude of observer place
     public static double latitude;
+    // longitude of observer place
     public static double longitude;
+    // Angle at which satellite is "visible" above the horizon
+    public static double deltaAngle;
+    // username for connection to Space-Track website
     public static String userName;
+    // password for connection to Space-Track website
     public static String password;
+    // Path to orekit-data.zip (needed to start Orekit library)
     public static String orekitDataProp;
+    // Satellite mass in kg
+    public static double satelliteMass;
+    // Satellite NORAD id
+    public static String satelliteId;
 
     public static void configureProperties(){
         Properties prop = new Properties();

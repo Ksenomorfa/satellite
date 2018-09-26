@@ -13,22 +13,24 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
+/**
+ * Reads TLE list from Space-Track website
+ */
 public class TLEURLReader implements TLEReader {
     private final String baseURL = "https://www.space-track.org";
     private final String authPath = "/ajaxauth/login";
     private final String logoutPath = "/ajaxauth/logout";
-
-    private List<TLE> tleList = new ArrayList<>();
-
     private String query;
     private HttpsURLConnection connection;
 
+    // Read TLEs
+    private List<TLE> tleList = new ArrayList<>();
+    // Start date to propagate
     private LocalDate start;
+    // Start date to load TLE
     private LocalDate tleDateStart;
+    // Period to propogate
     private long period;
-
-    public TLEURLReader() {
-    }
 
     public void init(String start, String period) {
         LocalDate startDate = LocalDate.parse(start, Utils.dateFormatter);
@@ -109,10 +111,6 @@ public class TLEURLReader implements TLEReader {
     @Override
     public LocalDate getTleDateStart() {
         return tleDateStart;
-    }
-
-    public void setTleDateStart(LocalDate tleDateStart) {
-        this.tleDateStart = tleDateStart;
     }
 }
 

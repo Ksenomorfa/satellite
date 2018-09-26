@@ -65,18 +65,14 @@ public class FormatsConverter {
         return new ECEF(x, y, z);
     }
 
-    public static ECEF teme2ecef(Vector3D teme, double julianDate, AbsoluteDate date) {
+    public static ECEF teme2ecef(Vector3D teme, double julianDate) {
         double gmst = 0;
         double st[][] = new double[3][3];
         double rpef[] = new double[3];
         double pm[][] = new double[3][3];
 
         //Get Greenwich mean sidereal time
-        try {
-            gmst = greenwichMeanSidereal(julianDate, date);
-        } catch (OrekitException e) {
-            e.printStackTrace();
-        }
+        gmst = greenwichMeanSidereal(julianDate);
 
         //st is the pef - tod matrix
         st[0][0] = cos(gmst);
@@ -136,10 +132,11 @@ public class FormatsConverter {
      * Calculates the Greenwich mean sidereal time (GMST) on julDate (doesn't have to be 0h).
      * Used calculations from Meesus 2nd ed.
      * https://stackoverflow.com/questions/32263754/modulus-in-pascal
+     *
      * @param jdut1 Julian Date
      * @return Greenwich mean sidereal time in degrees (0-360)
      */
-    public static double greenwichMeanSidereal(double jdut1, AbsoluteDate date) throws OrekitException {
+    public static double greenwichMeanSidereal(double jdut1) {
         double Tu = (jdut1 - 2451545.0);
         double gmst = Tu * 24.06570982441908 + 18.697374558;
         gmst = (gmst % 24) * Math.PI / 12;

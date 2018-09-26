@@ -19,7 +19,6 @@ public class Utils {
 
     /**
      * vector 2-norm
-     *
      * @param a vector of length 3
      * @return norm(a)
      */
@@ -59,7 +58,6 @@ public class Utils {
             int ja = (int) (0.01 * julianYear);
             julian += 2 - ja + (0.25 * ja);
         }
-
         return julian + hour + minute + second;
     }
 }

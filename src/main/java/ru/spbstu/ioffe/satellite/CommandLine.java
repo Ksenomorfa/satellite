@@ -12,17 +12,17 @@ public class CommandLine {
     public TLEReader reader;
 
     public void start() throws OrekitException {
-        while(true) {
+        while (true) {
             List<TLE> tles = tleChoose();
             if (!tles.isEmpty()) {
                 tles.forEach(System.err::println);
                 CoordinateCalculator coordinateCalculator = new CoordinateCalculator();
-                List<Periodis> periods = coordinateCalculator.calculateCoordinates(tles, reader);
+                List<PeriodOfPresence> periods = coordinateCalculator.calculateCoordinates(tles, reader);
                 System.out.println("| Date From, UTC          | Date To, UTC            | Duration, sec |");
                 System.out.println("| ----------------------- | ----------------------- | ------------- |");
-                for (Periodis period : periods) {
-                    System.out.println("| " + period.getFrom() + " | " + period.getTo()
-                            + " | " +  new DecimalFormat("0.00").format(period.getTo().durationFrom(period.getFrom())) + "        |");
+                for (PeriodOfPresence period : periods) {
+                    System.out.println("| " + period.getPresenceFrom() + " | " + period.getPresenceTo()
+                            + " | " + period.getPeriodOfPresence() + "        |");
                 }
             } else {
                 System.out.println("Sorry, tles for this satellite are absent.");
@@ -38,7 +38,7 @@ public class CommandLine {
         }
     }
 
-    public List<TLE> tleChoose() throws OrekitException {
+    private List<TLE> tleChoose() throws OrekitException {
         System.out.println("Enter mode: 1) TLE file or 2) Downloading from server or 3) Quit: ");
 
         Scanner sc = new Scanner(System.in);
@@ -46,29 +46,36 @@ public class CommandLine {
 
         while (!choiceIs) {
             String choice = sc.next();
-            if (choice.equals("1")) {
-                System.out.println("Enter file path: ");
-                String filePath = sc.next();
-                File filepathFile = new File(filePath);
-                if (filepathFile.exists()) {
-                    reader = new TLEFileReader(filepathFile);
+            switch (choice) {
+                case "1":
+                    System.out.println("Enter file path: ");
+                    String filePath = sc.next();
+                    File filepathFile = new File(filePath);
+                    if (filepathFile.exists()) {
+                        reader = new TLEFileReader(filepathFile);
+                        choiceIs = true;
+                    } else {
+                        System.out.println("Wrong file, try again.");
+                    }
+                    break;
+                case "2":
+                    reader = new TLEURLReader();
+                    System.out.println("Default satellite : " + Constants.satelliteId + " with mass: " +
+                            Constants.satelliteMass + " kg. Do you want to change it? (Y/N)");
+                    if (sc.next().equalsIgnoreCase("Y")) {
+                        System.out.println("Enter NORAD satellite id: ");
+                        Constants.satelliteId = sc.next();
+                        System.out.println("Enter satellite mass in kg: ");
+                        Constants.satelliteMass = Double.parseDouble(sc.next());
+                    }
                     choiceIs = true;
-                } else {
-                    System.out.println("Wrong file, try again.");
-                }
-            } else if (choice.equals("2")) {
-                reader = new TLEURLReader();
-                System.out.println("Default satellite : " + Constants.satelliteId + ". Do you want to change it? (Y/N)");
-                if (sc.next().equalsIgnoreCase("Y")) {
-                    System.out.println("Enter NORAD satellite id: ");
-                    Constants.satelliteId = sc.next();
-                }
-                choiceIs = true;
-            } else if (choice.equals("3")) {
-                System.out.println("Goodbye! ");
-                System.exit(0);
-            } else {
-                System.out.println("Wrong choice. Choose 1, or 2, or 3 and press <Enter>.");
+                    break;
+                case "3":
+                    System.out.println("Goodbye! ");
+                    System.exit(0);
+                default:
+                    System.out.println("Wrong choice. Choose 1, or 2, or 3 and press <Enter>.");
+                    break;
             }
         }
         System.out.println("Enter the start date to propagate in format YYYY-MM-DD: ");

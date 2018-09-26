@@ -11,12 +11,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Reads TLE list from TLE file
+ */
 public class TLEFileReader implements TLEReader {
-    List<TLE> tleList = new ArrayList<>();
+    // Path to TLE file
+    private File file;
+    // Read TLEs
+    private List<TLE> tleList = new ArrayList<>();
+    // Start date to propagate
     private LocalDate start;
+    // Start date to load TLE
     private LocalDate tleDateStart;
+    // Period to propogate
     private long period;
-    File file;
 
     public TLEFileReader(File file) {
         this.file = file;
@@ -67,10 +75,6 @@ public class TLEFileReader implements TLEReader {
 
     public LocalDate getTleDateStart() {
         return tleDateStart;
-    }
-
-    public void setTleDateStart(LocalDate tleDateStart) {
-        this.tleDateStart = tleDateStart;
     }
 }
 

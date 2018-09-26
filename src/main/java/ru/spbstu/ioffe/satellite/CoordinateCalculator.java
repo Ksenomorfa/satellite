@@ -17,11 +17,74 @@ import static java.lang.Math.cos;
 
 public class CoordinateCalculator {
 
-    public List<Periodis> calculateCoordinates(List<TLE> tles, TLEReader reader) throws OrekitException {
-        List<Periodis> periods = new ArrayList<>();
-        TLE tleLoaded = null;
+    public List<PeriodOfPresence> calculateCoordinates(List<TLE> tles, TLEReader reader) throws OrekitException {
+        List<PeriodOfPresence> periods = new ArrayList<>();
+        TLE tleLoaded = getTleBasedOnTLEAndStartDates(tles, reader);
+        LocalDate dayStart = reader.getStart();
+        long period = reader.getPeriod();
 
-        for(TLE tle: tles) {
+        TLEPropagator sgp4 = TLEPropagator.selectExtrapolator(tleLoaded,
+                InertialProvider.EME2000_ALIGNED, Constants.satelliteMass);
+
+        AbsoluteDate dateStartToPropogate = new AbsoluteDate(dayStart.getYear(),
+                Utils.toOrekitMonth(dayStart.getMonth()),
+                dayStart.getDayOfMonth(),
+                TimeScalesFactory.getUTC());
+        System.out.println("TLE loaded from: " + tleLoaded.getDate() + ". Date start to propogate: " + dateStartToPropogate);
+
+        PVCoordinates pvCoordinates = sgp4.getPVCoordinates(dateStartToPropogate);
+        System.out.println("PV coordinates:" + pvCoordinates);
+
+        boolean satelliteIn = false;
+        boolean satelliteOut = false;
+        PeriodOfPresence periodOfPresence = new PeriodOfPresence();
+        System.out.println("Calculating periods ...");
+
+        // Calculation precision is 0.1 s
+        for (double i = 0; i < 3600 * 24 * period; i = i + 0.1) {
+            AbsoluteDate newDate = dateStartToPropogate.shiftedBy(i);
+            pvCoordinates = sgp4.propagate(newDate).getPVCoordinates();
+            Vector3D position = pvCoordinates.getPosition();
+
+            double julianDate = Utils.julianDate(newDate.toString().substring(0, 10),
+                    newDate.toString().substring(11, 19));
+
+            ECEF ecef = FormatsConverter.teme2ecef(position, julianDate);
+            LLA lla = FormatsConverter.ecef2lla(ecef);
+
+            double neededDistance = neededDistanceThroughHorizon(lla);
+            double actualDistance = actualDistanceSatellitePlace(ecef);
+            //System.out.println("TIME UTC: " + newDate);
+            //System.out.println("needed distance: " + neededDistance);
+            //System.out.println("actual distance: " + actualDistance);
+
+            if (actualDistance <= neededDistance && !satelliteIn) {
+                periodOfPresence.setPresenceFrom(newDate);
+                satelliteIn = true;
+                //System.out.println("Satellite in zone: " + newDate);
+            }
+            if (actualDistance > neededDistance && !satelliteOut && satelliteIn) {
+                periodOfPresence.setPresenceTo(newDate);
+                satelliteOut = true;
+                //System.out.println("Satellite out of zone: " + newDate);
+            }
+            if (periodOfPresence.getPresenceFrom() != null && periodOfPresence.getPresenceTo() != null) {
+                periods.add(periodOfPresence);
+                periodOfPresence = new PeriodOfPresence();
+                satelliteIn = false;
+                satelliteOut = false;
+            }
+
+            //System.out.println("  ECEF: x: " + ecef.getX() + " y: " + ecef.getY() + " z: " + ecef.getZ() + " r: " + r);
+            //System.out.println("  LLA: l: " + Math.toDegrees(lla.getLatitude()) + " l: " + Math.toDegrees(lla.getLongitude())
+            //       + " a: " + lla.getAltitude());
+        }
+        return periods;
+    }
+
+    private TLE getTleBasedOnTLEAndStartDates(List<TLE> tles, TLEReader reader) throws OrekitException {
+        TLE tleLoaded = null;
+        for (TLE tle : tles) {
             String tleDate = tle.getDate().toString(TimeScalesFactory.getUTC()).substring(0, 10);
             String readerDate = reader.getTleDateStart().format(Utils.dateFormatter).substring(0, 10);
 
@@ -37,65 +100,7 @@ public class CoordinateCalculator {
                 break;
             }
         }
-        LocalDate dayStart = reader.getStart();
-        long period = reader.getPeriod();
-
-        TLEPropagator sgp4 = TLEPropagator.selectExtrapolator(tleLoaded,
-                InertialProvider.EME2000_ALIGNED, Constants.satelliteMass);
-
-        AbsoluteDate dateStartToPropogate = new AbsoluteDate(dayStart.getYear(), Utils.toOrekitMonth(dayStart.getMonth()),
-                dayStart.getDayOfMonth(), TimeScalesFactory.getUTC());
-        System.out.println("TLE loaded from: " + tleLoaded.getDate() + ". Date start to propogate: " + dateStartToPropogate);
-
-        PVCoordinates pvCoordinates = sgp4.getPVCoordinates(dateStartToPropogate);
-        System.out.println("PV coordinates:" + pvCoordinates);
-
-        boolean satelliteIn = false;
-        boolean satelliteOut = false;
-        Periodis periodOfPresence = new Periodis();
-        System.out.println("Calculating periods ...");
-
-        for (double i = 0; i < 3600 * 24 * period; i=i+0.1) {
-            AbsoluteDate newDate = dateStartToPropogate.shiftedBy(i);
-            pvCoordinates = sgp4.propagate(newDate).getPVCoordinates();
-            Vector3D position = pvCoordinates.getPosition();
-
-            double julianDate = Utils.julianDate(newDate.toString().substring(0, 10), newDate.toString().substring(11, 19));
-
-            ECEF ecef = FormatsConverter.teme2ecef(position, julianDate, newDate);
-            LLA lla = FormatsConverter.ecef2lla(ecef);
-
-            double neededDistance = neededDistanceThroughHorizont(lla);
-            //System.out.println("needed distance: " + neededDistance);
-            double actualDistance = actualDistanceSatellitePlace(ecef);
-            //System.out.println("TIME UTC: " + newDate);
-            //System.out.println("actual distance: " + actualDistance);
-
-            if (actualDistance <= neededDistance && !satelliteIn) {
-                periodOfPresence.setFrom(newDate);
-                satelliteIn = true;
-                //System.out.println("Satellite in: " + newDate);
-            }
-
-            if (actualDistance > neededDistance && !satelliteOut && satelliteIn) {
-                periodOfPresence.setTo(newDate);
-                satelliteOut = true;
-                //System.out.println("Satellite out: " + newDate);
-            }
-
-            if (periodOfPresence.getFrom() != null && periodOfPresence.getTo() != null) {
-                periods.add(periodOfPresence);
-                periodOfPresence = new Periodis();
-                satelliteIn = false;
-                satelliteOut = false;
-            }
-
-            //System.out.println("  ECEF: x: " + ecef.getX() + " y: " + ecef.getY() + " z: " + ecef.getZ() + " r: " + r);
-            //System.out.println("  LLA: l: " + Math.toDegrees(lla.getLatitude()) + " l: " + Math.toDegrees(lla.getLongitude())
-             //       + " a: " + lla.getAltitude());
-        }
-        //System.out.println(periods);
-        return periods;
+        return tleLoaded;
     }
 
     private double actualDistanceSatellitePlace(ECEF ecef) {
@@ -104,31 +109,22 @@ public class CoordinateCalculator {
         double z1 = ecef.getZ();
 
         LLA placeLLA = new LLA(Constants.latitude * Math.PI / 180, Constants.longitude * Math.PI / 180, 0);
-        //System.out.println("latitude: " + Constants.latitude + " " + Constants.longitude);
-        //System.out.println(placeLLA.getLatitude() + " " + placeLLA.getLongitude() + " " + placeLLA.getAltitude());
 
         ECEF placeECEF = FormatsConverter.lla2ecef(placeLLA);
         double x2 = placeECEF.getX();
         double y2 = placeECEF.getY();
         double z2 = placeECEF.getZ();
-        double r = Math.sqrt(x2*x2 + y2*y2 + z2*z2);
 
-        //System.out.println("PLACE: " + x2+ " " + y2 + " " + z2 + " r: " + r);
-        double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
-        //System.out.println("actual distance: " + distance);
-
-        return distance;
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
     }
 
-    private double neededDistanceThroughHorizont(LLA lla) {
+    private double neededDistanceThroughHorizon(LLA lla) {
         double delta = Constants.deltaAngle / 180 * Math.PI;
         double height = lla.getAltitude();
         double earthRadius = Constants.earthRadius;
-        double x = Math.sqrt(Math.pow(earthRadius + height, 2) - Math.pow(earthRadius,2) * Math.pow(cos(delta),2))
-                - earthRadius * Math.sin(delta);
-        //System.out.println("distance needed to satellite: " + x);
 
-        return x;
+        return Math.sqrt(Math.pow(earthRadius + height, 2) - Math.pow(earthRadius, 2) * Math.pow(cos(delta), 2))
+                - earthRadius * Math.sin(delta);
     }
 
 }
