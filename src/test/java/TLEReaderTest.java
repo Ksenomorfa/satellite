@@ -28,7 +28,7 @@ public class TLEReaderTest {
         ClassLoader classLoader = getClass().getClassLoader();
         TLEReader fileReader = new TLEFileReader(new File(classLoader.getResource("some.tle").getFile()));
 
-        fileReader.init("2009-09-30", "2");
+        fileReader.init("2009-09-12", "1");
         List<TLE> tles = fileReader.readTLE();
         tles.forEach(System.out::println);
 

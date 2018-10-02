@@ -41,7 +41,7 @@ public class CoordinateCalculator {
         System.out.println("Calculating periods ...");
 
         // Calculation precision is 0.1 s
-        for (double i = 0; i < 3600 * 24 * period; i = i + 0.1) {
+        for (double i = 0; i < 3600 * 24 * period; i++) {
             AbsoluteDate newDate = dateStartToPropogate.shiftedBy(i);
             pvCoordinates = sgp4.propagate(newDate).getPVCoordinates();
             Vector3D position = pvCoordinates.getPosition();
@@ -52,9 +52,9 @@ public class CoordinateCalculator {
             ECEF ecef = FormatsConverter.teme2ecef(position, julianDate);
             LLA lla = FormatsConverter.ecef2lla(ecef);
 
+            //System.out.println("TIME UTC: " + newDate);
             double neededDistance = neededDistanceThroughHorizon(lla);
             double actualDistance = actualDistanceSatellitePlace(ecef);
-            //System.out.println("TIME UTC: " + newDate);
             //System.out.println("needed distance: " + neededDistance);
             //System.out.println("actual distance: " + actualDistance);
 
@@ -83,24 +83,21 @@ public class CoordinateCalculator {
     }
 
     private TLE getTleBasedOnTLEAndStartDates(List<TLE> tles, TLEReader reader) throws OrekitException {
-        TLE tleLoaded = null;
         for (TLE tle : tles) {
             String tleDate = tle.getDate().toString(TimeScalesFactory.getUTC()).substring(0, 10);
             String readerDate = reader.getTleDateStart().format(Utils.dateFormatter).substring(0, 10);
-
-            if (tle.getDate().toString(TimeScalesFactory.getUTC()).substring(0, 10)
-                    .equals(reader.getTleDateStart().format(Utils.dateFormatter).substring(0, 10))) {
-                tleLoaded = tle;
-                break;
-            } else if (LocalDate.parse(tleDate).isAfter(LocalDate.parse(readerDate))) {
-                tleLoaded = tles.get(0);
-                break;
-            } else if (LocalDate.parse(tleDate).isBefore(LocalDate.parse(readerDate))) {
-                tleLoaded = tles.get(tles.size() - 1);
-                break;
+            if (tleDate.equals(readerDate)) {
+                return tle;
             }
         }
-        return tleLoaded;
+        for (TLE tle : tles) {
+            String tleDate = tle.getDate().toString(TimeScalesFactory.getUTC()).substring(0, 10);
+            String readerDate = reader.getTleDateStart().format(Utils.dateFormatter).substring(0, 10);
+            if (LocalDate.parse(tleDate).isAfter(LocalDate.parse(readerDate))) {
+                return tles.get(0);
+            }
+        }
+        return tles.get(tles.size() - 1);
     }
 
     private double actualDistanceSatellitePlace(ECEF ecef) {
@@ -114,7 +111,8 @@ public class CoordinateCalculator {
         double x2 = placeECEF.getX();
         double y2 = placeECEF.getY();
         double z2 = placeECEF.getZ();
-
+        //System.err.println("satellite: " + x1 + " " + y1 + " " + z1);
+        //System.err.println("moscow: " + x2 + " " + y2 + " " + z2);
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
     }
 
