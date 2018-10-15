@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 group 'spbstu'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -17,4 +17,4 @@ dependencies {
 }
 
 mainClassName = "ru.spbstu.ioffe.satellite.Main"
-applicationDistribution.from('satellite.properties', 'orekit-data.zip').into('bin')
+applicationDistribution.from('satellite.properties', 'orekit-data.zip','092009_KORONAS.tle').into('bin')

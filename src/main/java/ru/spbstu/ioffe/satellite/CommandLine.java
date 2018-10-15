@@ -51,6 +51,8 @@ public class CommandLine {
                     System.out.println("Enter file path: ");
                     String filePath = sc.next();
                     File filepathFile = new File(filePath);
+                    System.out.println("Enter satellite mass in kg: ");
+                    Constants.satelliteMass = Double.parseDouble(sc.next());
                     if (filepathFile.exists()) {
                         reader = new TLEFileReader(filepathFile);
                         choiceIs = true;

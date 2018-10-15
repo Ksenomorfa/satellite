@@ -39,7 +39,7 @@ public class TLEReaderTest {
 
     @Test
     public void testSPG4URL() throws OrekitException {
-        LocalDate dayToShow = LocalDate.parse("2018-09-26", Utils.dateFormatter);
+        LocalDate dayToShow = LocalDate.parse("2009-09-12", Utils.dateFormatter);
         String dateStartString = dayToShow.format(Utils.dateFormatter);
 
         TLEReader urlReader = new TLEURLReader();
